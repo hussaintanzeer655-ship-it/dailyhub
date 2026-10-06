@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H4VF7WNZRR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-H4VF7WNZRR');
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DailyHub – The tools everyone searches for, every day</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--tx:#14213d;--mut:#64708a;--ac:#2563eb;--bd:#e0e6f0;--hi:#eaf1ff}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1220;--card:#171e30;--tx:#eaf0ff;--mut:#93a0bd;--ac:#5b8cff;--bd:#27314a;--hi:#1d2845}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:env(safe-area-inset-top,0) 16px env(safe-area-inset-bottom,0)}
+.w{max-width:960px;margin:0 auto;padding:28px 0 50px}
+h1{margin:0;font-size:2.1rem}h1 span{color:var(--ac)}
+.sub{color:var(--mut);margin:4px 0 18px}
+#q{width:100%;padding:14px 16px;font:inherit;font-size:1.05rem;border-radius:14px;border:2px solid var(--bd);background:var(--card);color:var(--tx)}
+#q:focus{outline:0;border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;cursor:pointer;text-align:left;color:var(--tx);font:inherit;transition:.15s}
+.tile:hover{transform:translateY(-3px);border-color:var(--ac)}
+.tile b{display:block;font-size:1.05rem}.tile span{font-size:1.7rem}.tile small{color:var(--mut)}
+#panel{display:none;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-top:16px}
+#panel h2{margin:0 0 14px;font-size:1.35rem}
+.back{background:none;border:0;color:var(--ac);font:inherit;cursor:pointer;padding:0;margin-bottom:10px;font-weight:600}
+label{display:block;font-size:.82rem;color:var(--mut);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;min-width:0}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.r3{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.res{margin-top:14px;padding:14px;border-radius:12px;background:var(--hi);font-size:1.15rem;font-weight:600;word-break:break-word}
+.res small{display:block;font-weight:400;color:var(--mut);font-size:.88rem}
+button.p{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;margin-top:10px}
+.clk{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--bd)}
+.clk:first-child{border-top:0}.clk b{font-variant-numeric:tabular-nums}
+.none{color:var(--mut);margin-top:20px;text-align:center}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>Daily<span>Hub</span></h1>
+<p class="sub">The tools people search for every single day, all in one place. Fast, free, private, no signup.</p>
+<input id="q" type="search" placeholder="Search tools… (try: bmi, tip, convert, age, password)" autocomplete="off">
+<div class="grid" id="grid"></div>
+<div id="panel"></div>
+<p class="none" id="none" style="display:none">No tool found. Try another word.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let timer=null;
+const n2=(x,d=6)=>isFinite(x)?String(+x.toFixed(d)):"–";
+const U={Length:{Metre:1,Kilometre:1000,Centimetre:.01,Millimetre:.001,Mile:1609.344,Yard:.9144,Foot:.3048,Inch:.0254},
+Weight:{Kilogram:1,Gram:.001,Pound:.45359237,Ounce:.0283495,"Tonne":1000},
+Volume:{Litre:1,Millilitre:.001,"Gallon (US)":3.78541,Cup:.236588,"Fl oz":.0295735},
+Speed:{"m/s":1,"km/h":.277778,"mph":.44704,Knot:.514444},Temperature:null};
+const opts=(a,s)=>a.map(x=>`<option${x===s?" selected":""}>${x}</option>`).join("");
+const toC=(v,u)=>u=="Celsius"?v:u=="Fahrenheit"?(v-32)*5/9:v-273.15;
+const fromC=(c,u)=>u=="Celsius"?c:u=="Fahrenheit"?c*9/5+32:c+273.15;
+const T=[
+{id:"unit",t:"Unit Converter",i:"📏",d:"Length, weight, temp…",k:"convert unit length weight temperature km miles kg lb celsius fahrenheit volume speed",f(e){
+ e.innerHTML=`<label>Type</label><select id="c">${opts(Object.keys(U))}</select><div class="r3"><div><label>Value</label><input id="v" type="number" value="1"></div><div><label>From</label><select id="a"></select></div><div><label>To</label><select id="b"></select></div></div><div class="res" id="o"></div>`;
+ const c=$("c"),a=$("a"),b=$("b"),v=$("v");
+ const fill=()=>{const k=Object.keys(U[c.value]||{Celsius:1,Fahrenheit:1,Kelvin:1});a.innerHTML=opts(k,k[0]);b.innerHTML=opts(k,k[1]);calc()};
+ const calc=()=>{const x=parseFloat(v.value);let r;if(c.value=="Temperature")r=fromC(toC(x,a.value),b.value);else{const m=U[c.value];r=x*m[a.value]/m[b.value]}$("o").innerHTML=n2(x)+" "+a.value+" = "+n2(r)+" "+b.value};
+ c.onchange=fill;[a,b,v].forEach(z=>z.oninput=calc);fill()}},
+{id:"age",t:"Age Calculator",i:"🎂",d:"Exact age & next birthday",k:"age birthday date of birth years old",f(e){
+ e.innerHTML=`<label>Date of birth</label><input id="d" type="date"><div class="res" id="o">Pick a date</div>`;
+ $("d").oninput=()=>{const v=$("d").value;if(!v)return;const [by,bm,bd]=v.split("-").map(Number),t=new Date();let y=t.getFullYear()-by,m=t.getMonth()+1-bm,d=t.getDate()-bd;
+  if(d<0){m--;d+=new Date(t.getFullYear(),t.getMonth(),0).getDate()}if(m<0){y--;m+=12}
+  if(y<0){$("o").textContent="Date is in the future";return}
+  const td=new Date(t.getFullYear(),t.getMonth(),t.getDate());let nb=new Date(t.getFullYear(),bm-1,bd);if(nb<td)nb.setFullYear(nb.getFullYear()+1);
+  $("o").innerHTML=`${y} years, ${m} months, ${d} days<small>Next birthday in ${Math.round((nb-td)/864e5)} days · ${Math.floor((td-new Date(by,bm-1,bd))/864e5).toLocaleString()} days alive</small>`}}},
+{id:"bmi",t:"BMI Calculator",i:"⚖️",d:"Body mass index",k:"bmi body mass index weight height health",f(e){
+ e.innerHTML=`<div class="r2"><div><label>Height (cm)</label><input id="h" type="number" value="170"></div><div><label>Weight (kg)</label><input id="w" type="number" value="70"></div></div><div class="res" id="o"></div>`;
+ const c=()=>{const h=$("h").value/100,w=$("w").value,b=w/(h*h);const cat=b<18.5?"Underweight":b<25?"Normal range":b<30?"Overweight":"Obese";$("o").innerHTML=isFinite(b)&&b>0?`BMI ${b.toFixed(1)} · ${cat}<small>A general guide only, not medical advice.</small>`:"Enter height and weight"};
+ $("h").oninput=$("w").oninput=c;c()}},
+{id:"tip",t:"Tip & Split Bill",i:"🍽️",d:"Tip and per-person total",k:"tip split bill restaurant calculator",f(e){
+ e.innerHTML=`<div class="r3"><div><label>Bill</label><input id="b" type="number" value="50"></div><div><label>Tip %</label><input id="t" type="number" value="15"></div><div><label>People</label><input id="p" type="number" value="2" min="1"></div></div><div class="res" id="o"></div>`;
+ const c=()=>{const b=+$("b").value,t=b*$("t").value/100,tot=b+t,p=Math.max(1,+$("p").value||1);$("o").innerHTML=`Total ${tot.toFixed(2)}<small>Tip ${t.toFixed(2)} · Each person pays ${(tot/p).toFixed(2)}</small>`};
+ e.oninput=c;c()}},
+{id:"pct",t:"Percentage Calculator",i:"％",d:"% of, what %, change",k:"percentage percent calculator discount increase decrease",f(e){
+ e.innerHTML=`<label>What is</label><div class="r2"><input id="a1" type="number" value="20" aria-label="percent"><input id="b1" type="number" value="150" aria-label="of"></div><div class="res" id="o1"></div><label>X is what % of Y</label><div class="r2"><input id="a2" type="number" value="30"><input id="b2" type="number" value="120"></div><div class="res" id="o2"></div><label>% change from → to</label><div class="r2"><input id="a3" type="number" value="80"><input id="b3" type="number" value="100"></div><div class="res" id="o3"></div>`;
+ const g=i=>+$(i).value,c=()=>{$("o1").textContent=g("a1")+"% of "+g("b1")+" = "+n2(g("a1")*g("b1")/100,4);$("o2").textContent=g("a2")+" is "+n2(g("a2")/g("b2")*100,4)+"% of "+g("b2");const ch=(g("b3")-g("a3"))/g("a3")*100;$("o3").textContent=(ch>=0?"Increase of ":"Decrease of ")+n2(Math.abs(ch),4)+"%"};
+ e.oninput=c;c()}},
+{id:"pw",t:"Password Generator",i:"🔐",d:"Strong random passwords",k:"password generator secure random strong",f(e){
+ e.innerHTML=`<label>Length: <b id="ln">16</b></label><input id="l" type="range" min="8" max="64" value="16"><div class="r3"><label><input type="checkbox" id="u" checked style="width:auto"> A-Z</label><label><input type="checkbox" id="n" checked style="width:auto"> 0-9</label><label><input type="checkbox" id="s" checked style="width:auto"> Symbols</label></div><div class="res" id="o"></div><button class="p" id="g">Generate</button> <button class="p" id="cp">Copy</button>`;
+ const gen=()=>{let ch="abcdefghijklmnopqrstuvwxyz";if($("u").checked)ch+="ABCDEFGHIJKLMNOPQRSTUVWXYZ";if($("n").checked)ch+="0123456789";if($("s").checked)ch+="!@#$%^&*()-_=+?";const L=+$("l").value;$("ln").textContent=L;const a=new Uint32Array(L);crypto.getRandomValues(a);$("o").textContent=[...a].map(x=>ch[x%ch.length]).join("")};
+ $("g").onclick=gen;e.oninput=e=>{if(e.target.id!="g")gen()};$("cp").onclick=async()=>{try{await navigator.clipboard.writeText($("o").textContent);$("cp").textContent="Copied ✓";setTimeout(()=>$("cp").textContent="Copy",1300)}catch(x){}};gen()}},
+{id:"clock",t:"World Clock",i:"🌍",d:"Live time worldwide",k:"time world clock timezone london new york tokyo dubai",f(e){
+ const Z=["UTC","America/New_York","America/Los_Angeles","Europe/London","Europe/Paris","Asia/Dubai","Asia/Kolkata","Asia/Kuala_Lumpur","Asia/Tokyo","Australia/Sydney"];
+ const draw=()=>{const n=new Date();e.innerHTML=Z.map(z=>`<div class="clk"><span>${z.replace(/_/g," ")}</span><b>${new Intl.DateTimeFormat([], {timeZone:z,weekday:"short",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(n)}</b></div>`).join("")};
+ draw();timer=setInterval(draw,1000)}},
+{id:"days",t:"Days Between Dates",i:"📅",d:"Countdown & date difference",k:"days between dates countdown date difference calendar weeks",f(e){
+ const t=new Date().toISOString().slice(0,10);
+ e.innerHTML=`<div class="r2"><div><label>From</label><input id="a" type="date" value="${t}"></div><div><label>To</label><input id="b" type="date"></div></div><div class="res" id="o">Pick an end date</div>`;
+ e.oninput=()=>{const a=new Date($("a").value),b=new Date($("b").value);if(isNaN(a)||isNaN(b))return;const d=Math.round((b-a)/864e5);$("o").innerHTML=`${Math.abs(d).toLocaleString()} days<small>${(Math.abs(d)/7).toFixed(1)} weeks · ${d<0?"end date is before start":"from start to end"}</small>`}}},
+{id:"words",t:"Word Counter",i:"✍️",d:"Words, characters, reading time",k:"word counter characters count text reading time sentences",f(e){
+ e.innerHTML=`<textarea id="x" rows="8" placeholder="Type or paste text…"></textarea><div class="res" id="o"></div>`;
+ const c=()=>{const s=$("x").value,w=(s.trim().match(/\S+/g)||[]).length;$("o").innerHTML=`${w} words · ${s.length} characters<small>${(s.match(/[.!?]+(\s|$)/g)||[]).length} sentences · about ${Math.max(w?1:0,Math.ceil(w/230))} min read</small>`};
+ $("x").oninput=c;c()}}
+];
+function home(){clearInterval(timer);$("panel").style.display="none";$("grid").style.display="";$("q").style.display="";filter()}
+function open(id){const t=T.find(x=>x.id==id);clearInterval(timer);$("grid").style.display="none";$("q").style.display="none";$("none").style.display="none";
+ const p=$("panel");p.style.display="block";p.innerHTML=`<button class="back" id="bk">← All tools</button><h2>${t.i} ${t.t}</h2><div id="body"></div>`;$("bk").onclick=home;t.f($("body"));scrollTo(0,0)}
+function filter(){const q=$("q").value.toLowerCase().trim(),L=T.filter(t=>!q||(t.t+" "+t.k).toLowerCase().includes(q));
+ $("grid").innerHTML=L.map(t=>`<button class="tile" data-id="${t.id}"><span>${t.i}</span><b>${t.t}</b><small>${t.d}</small></button>`).join("");$("none").style.display=L.length?"none":"block"}
+$("grid").onclick=e=>{const b=e.target.closest(".tile");if(b)open(b.dataset.id)};
+$("q").oninput=filter;
+$("q").onkeydown=e=>{if(e.key=="Enter"){const f=$("grid").querySelector(".tile");if(f)open(f.dataset.id)}};
+filter();
+</script>
+</body>
+</html>
